@@ -77,4 +77,4 @@ Confirmed that host resolution via `/etc/hosts` functions properly on the contro
 curl http://slave1
 curl http://slave2
 ```
-![AWS template](images/template.png)
+![AWS template](images/Template.png)
