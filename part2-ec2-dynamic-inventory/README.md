@@ -61,6 +61,7 @@ Verify that the `aws_ec2` plugin successfully queries AWS and retrieves active i
 ```bash
 ansible-inventory -i ec2.aws_ec2.yml --graph
 ```
+![AWS Gather](images/graph.png)
 
 ### Step 2: Gather EC2 Metadata & Facts
 Run the inspection playbook to collect instance details across the inventory:
@@ -69,12 +70,12 @@ ansible-playbook -i ec2.aws_ec2.yml gather_ec2_info.yml
 ```
 ![AWS Gather](images/tags.png)
 
-
 ### Step 3: Deploy Apache Web Server
 Execute the deployment playbook across all discovered instances:
 ```bash
 ansible-playbook -i ec2.aws_ec2.yml install_apache.yml
 ```
+![AWS Apache](images/curl
 
 ### Step 4: Post-Deployment Cluster Verification
 Run an ad-hoc command from the Control Node to verify HTTP response status from target nodes:
