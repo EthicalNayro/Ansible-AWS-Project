@@ -26,3 +26,103 @@ This repository provides an automated infrastructure management workflow designe
 ├── ansible.cfg           # Ansible environment configuration settings
 ├── .gitignore            # Security filtering (excludes *.pem keys and AWS credentials)
 └── README.md             # Project documentation
+```
+
+---
+
+## 🛠️ Prerequisites & Setup
+
+Ensure the **Control Node** meets the following dependencies:
+
+1. **Python Dependencies:**
+   ```bash
+   pip install ansible boto3 botocore
+   ```
+
+2. **Ansible Collection:**
+   ```bash
+   ansible-galaxy collection install amazon.aws
+   ```
+
+3. **AWS Authentication:**
+   Configure active AWS credentials (via AWS CLI, environment variables, or IAM Instance Profile):
+   ```bash
+   aws configure
+   ```
+
+---
+
+## 🚀 Workflows & Execution
+
+### Step 1: Dynamic Inventory Verification
+Verify that the `aws_ec2` plugin successfully queries AWS and retrieves active instances:
+```bash
+ansible-inventory -i ec2.aws_ec2.yml --graph
+```
+
+### Step 2: Gather EC2 Metadata & Facts
+Run the inspection playbook to collect instance details across the inventory:
+```bash
+ansible-playbook -i ec2.aws_ec2.yml gather_ec2_info.yml
+```
+
+### Step 3: Deploy Apache Web Server
+Execute the deployment playbook across all discovered instances:
+```bash
+ansible-playbook -i ec2.aws_ec2.yml install_apache.yml
+```
+
+### Step 4: Post-Deployment Cluster Verification
+Run an ad-hoc command from the Control Node to verify HTTP response status from target nodes:
+```bash
+ansible all -i ec2.aws_ec2.yml -m shell -a "curl -I http://localhost" -b
+```
+
+---
+
+## 🔍 Engineering Deep Dive: Troubleshooting & Failure Recovery
+
+During the initial execution of `install_apache.yml`, the `Ensure apache is running` task failed on target nodes (`Slave1`, `Slave2`).
+
+### 1. Root Cause Identification
+Executing an Ansible ad-hoc diagnostic command against system logs revealed socket binding failure:
+```bash
+ansible all -i ec2.aws_ec2.yml -m command -a "journalctl -xeu apache2.service -n 20 --no-pager" -b
+```
+
+**Error output:**
+```text
+(98)Address already in use: AH00072: make_sock: could not bind to address 0.0.0.0:80
+(98)Address already in use: AH00072: make_sock: could not bind to address [::]:80
+no listening sockets available, shutting down
+```
+* **Analysis:** Port 80 was occupied by a competing daemon (Nginx / orphaned process), preventing Apache from binding to socket `0.0.0.0:80`.
+
+### 2. Resolution & Idempotency Fix
+To ensure the playbook operates idempotently across any execution state, a task was added to preemptively stop competing web services before triggering the Apache service:
+
+```yaml
+- name: Ensure competing service (nginx) is stopped
+  ansible.builtin.service:
+    name: nginx
+    state: stopped
+  ignore_errors: true
+
+- name: Install apache
+  ansible.builtin.apt:
+    name: apache2
+    state: present
+    update_cache: true
+
+- name: Ensure apache is running and enabled
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: true
+```
+
+---
+
+## 🔐 Security Standards
+* **Credential Isolation:** `.gitignore` strictly prevents pushing RSA private keys (`*.pem`), SSH keys, and local AWS profile caches to Git repositories.
+* **Privilege Escalation:** Task execution utilizes explicit root privilege escalation (`become: true`) scoped only to required tasks.
