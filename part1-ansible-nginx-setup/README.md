@@ -9,6 +9,21 @@ Automated provisioning, connectivity setup, and dynamic configuration of Nginx w
 
 ---
 
+## 📂 Directory & File Structure
+
+```text
+part1-ansible-nginx-setup/
+├── inventory
+├── templates/
+│   └── index.html.j2       # Jinja2 dynamic HTML web template
+├── images/                 # Project documentation images
+├── site.yml                # Main Ansible provisioning playbook
+└── README.md               # Project documentation
+
+```
+
+---
+
 ## 📌 Project Overview
 
 This project (Part 1) establishes a centralized infrastructure automation pipeline on AWS. Using a dedicated Control Node (`Main`), target managed nodes (`slave1` and `slave2`) are automatically configured with Nginx, system dependencies, and custom web content injected with live server metadata.
@@ -31,20 +46,7 @@ The deployment environment consists of three `t3.micro` EC2 instances running Ub
 
 ![AWS EC2 Console Overview](images/Instances.png)
 
----
 
-## 📂 Directory & File Structure
-
-```text
-part1-ansible-nginx-setup/
-├── inventory
-├── templates/
-│   └── index.html.j2       # Jinja2 dynamic HTML web template
-├── images/                 # Project documentation images
-├── site.yml                # Main Ansible provisioning playbook
-└── README.md               # Project documentation
-
-```
 ## 🧪 Verification & Execution Flow
 
 ### 1. Connectivity Verification (`ping` module)
