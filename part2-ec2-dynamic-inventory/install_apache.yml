@@ -1,0 +1,17 @@
+---
+- name: Install and start apache on webserver
+  hosts: role_web
+  become: yes
+
+  tasks:
+    - name: Install apache
+      ansible.builtin.apt:
+        name: apache2
+        state: present
+        update_cache: yes
+
+    - name: Ensure apache is running
+      ansible.builtin.service:
+        name: apache2
+        state: started
+        enabled: yes
