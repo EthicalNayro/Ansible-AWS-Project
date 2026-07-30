@@ -1,15 +1,30 @@
-# AWS EC2 Automated Monitoring with Prometheus & Node Exporter (Ansible)
+# Automated Prometheus & Node Exporter Deployment via Ansible
 
-An automated deployment pipeline using Ansible Roles and Jinja2 templating to provision a complete Prometheus monitoring stack across AWS EC2 instances.
+A production-grade DevOps implementation demonstrating automated system monitoring deployment on AWS EC2 using Ansible Roles, Jinja2 dynamic templating, and Systemd service management.
 
 ---
 
-## 📌 Project Overview
+## 📐 Architecture & Design Principles
 
-This project automates the deployment of a system monitoring infrastructure:
-- **Prometheus Server:** Deployed on the Control Node EC2 instance to collect, store, and query system metrics.
-- **Target Node:** Monitored EC2 instance running `node_exporter` to expose host-level hardware and OS metrics.
-- **Dynamic Scrape Configuration:** Utilizes Jinja2 templates (`.j2`) to automatically evaluate inventory targets and generate `prometheus.yml` scrape targets dynamically.
+The project utilizes a 2-node AWS EC2 topology running Ubuntu 22.04 LTS:
+
+```text
++-------------------------------------------------------+               +----------------------------------+
+|               Prometheus EC2 Instance                 |               |        Target EC2 Instance       |
+|  (Acts as Ansible Control Node & Monitoring Server)   |               |         (Monitored Host)         |
+|                                                       |               |                                  |
+|  +--------------------+    +-----------------------+  |               |  +----------------------------+  |
+|  |  Ansible Engine    |    |   Prometheus Server   |  |  SSH (22)     |  |   Node Exporter Service    |  |
+|  |  (Local Execution) |--->|   (Port 9090)         |=================>|   (Port 9100)              |  |
+|  +--------------------+    +-----------------------+  | Pull Metrics  |  +----------------------------+  |
++-------------------------------------------------------+               +----------------------------------+
+```
+
+### Key Engineering Decisions
+* **Co-located Control Node:** The Ansible engine is deployed directly on the Prometheus server, executing local tasks (`ansible_connection=local`) for self-setup and remote SSH execution for target nodes.
+* **Key-Based Authentication:** Secured passwordless SSH access established via 4096-bit RSA key pairs between the Control Node and managed hosts.
+* **Dynamic Target Discovery:** The Prometheus scrape configuration (`prometheus.yml.j2`) uses Jinja2 loops to dynamically render target targets directly from the Ansible `inventory`.
+* **Modular Role Architecture:** Separation of concerns into distinct Ansible Roles (`prometheus` and `node_exporter`) for maintainability and scalability.
 
 ---
 
@@ -17,49 +32,42 @@ This project automates the deployment of a system monitoring infrastructure:
 
 ```text
 prometheus_monitoring/
-├── inventory                   # Ansible inventory defining host groups
-├── site.yml                    # Main Ansible playbook entrypoint
-├── group_vars/                 # Group variables directory
+├── inventory                   # Inventory mapping (localhost + targets)
+├── site.yml                    # Main orchestration playbook
+├── group_vars/                 # Directory for group-level variables
 └── roles/
-    ├── prometheus/
-    │   ├── tasks/
-    │   │   └── main.yml        # Tasks to install, configure, and run Prometheus
-    │   └── templates/
-    │       ├── prometheus.service.j2 # Systemd unit template
-    │       └── prometheus.yml.j2      # Jinja2 template for dynamic target discovery
-    └── node_exporter/
-        ├── tasks/
-        │   └── main.yml        # Tasks to install and run Node Exporter
-        └── templates/
-            └── node_exporter.service.j2 # Systemd unit template
+    ├── prometheus/             # Prometheus Server Deployment Role
+    │   ├── tasks/              # Task definitions (installation, configuration, service)
+    │   └── templates/          # Jinja2 templates (prometheus.yml, systemd unit)
+    └── node_exporter/          # Node Exporter Deployment Role
+        ├── tasks/              # Task definitions (binary setup, systemd management)
+        └── templates/          # Jinja2 template for node_exporter systemd unit
 ```
 
 ---
 
-## ⚙️ Prerequisites
+## ⚙️ Prerequisites & Setup
 
-1. **AWS EC2 Instances (Ubuntu 22.04 LTS):**
-   - **Prometheus Instance:** Serves as both Ansible Control Node & Prometheus host.
-   - **Target Instance:** Monitored target running `node_exporter`.
-2. **Security Group Rules:**
-   - Port `22` (SSH) — Inbound from admin workstation / Ansible control node.
-   - Port `9090` (Prometheus Web UI) — Inbound allowed on Prometheus instance.
-   - Port `9100` (Node Exporter) — Inbound allowed from Prometheus instance.
-3. **SSH Authentication:**
-   - Key-based passwordless SSH access established between the Prometheus Instance and Target Instance.
+1. **Infrastructure:**
+   - 2x AWS EC2 Instances (Ubuntu 22.04 LTS).
+   - **Security Groups:** 
+     - Port `22` (SSH) — Administrative access.
+     - Port `9090` (Prometheus Web UI) — Inbound allowed on Monitoring host.
+     - Port `9100` (Node Exporter) — Inbound allowed from Prometheus Server.
+
+2. **SSH Key Exchange:**
+   Generate keypair on the Control Node and append the public key to the target host's `authorized_keys`:
+   ```bash
+   ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
+   ssh-copy-id ubuntu@<TARGET_IP>
+   ```
 
 ---
 
-## 🚀 Quick Start & Deployment
+## 🚀 Quick Start & Usage
 
-### 1. Clone the Repository
-```bash
-git clone <YOUR_REPOSITORY_URL>
-cd prometheus_monitoring
-```
-
-### 2. Configure Inventory
-Update the `inventory` file with your target server IP:
+### 1. Configure Inventory
+Update the `inventory` file with your managed target server details:
 
 ```ini
 [prometheus]
@@ -69,8 +77,8 @@ localhost ansible_connection=local
 <TARGET_INSTANCE_IP> ansible_user=ubuntu
 ```
 
-### 3. Run the Playbook
-Execute the main playbook to deploy all roles across the infrastructure:
+### 2. Execute Deployment
+Run the main orchestration playbook:
 
 ```bash
 ansible-playbook -i inventory site.yml
@@ -78,45 +86,36 @@ ansible-playbook -i inventory site.yml
 
 ---
 
-## 📊 Verification & PromQL Queries
+## 🛠️ Roles Overview
 
-### 1. Access Prometheus Web UI
-Open your browser and navigate to:
-```text
-http://<PROMETHEUS_PUBLIC_IP>:9090
-```
+* **`prometheus` Role:**
+  * Installs core dependencies (`wget`, `tar`, `apache2-utils`).
+  * Downloads and extracts Prometheus binary (v2.44.0).
+  * Dynamically renders `prometheus.yml` using Jinja2 target interpolation.
+  * Provisions and manages the `prometheus.service` Systemd daemon.
 
-### 2. Verify Targets Status
-Navigate to **Status -> Targets** in the Prometheus web interface. Ensure the `node_exporter` job showing `<TARGET_IP>:9100` displays a state of **UP**.
-
-### 3. Sample PromQL Queries
-
-* **Target Availability Check:**
-  ```promql
-  up
-  ```
-
-* **CPU Utilization (%):**
-  ```promql
-  100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
-  ```
-
-* **Memory Usage (%):**
-  ```promql
-  (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
-  ```
+* **`node_exporter` Role:**
+  * Fetches and unpacks Node Exporter (v1.6.1).
+  * Provisions `node_exporter.service` Systemd unit.
+  * Starts and enables the exporter daemon listening on port 9100.
 
 ---
 
-## 🛠️ Roles Specification
+## 📊 Verification & PromQL Metrics Validation
 
-### 1. `prometheus` Role
-- Updates `apt` cache and installs required system dependencies (`wget`, `tar`, `apache2-utils`).
-- Downloads and extracts Prometheus binary archive (v2.44.0).
-- Renders `prometheus.yml` dynamically from `prometheus.yml.j2` based on inventory targets.
-- Provisions `prometheus.service` systemd unit file and enables the service.
+1. Access Prometheus UI at `http://<PROMETHEUS_PUBLIC_IP>:9090`.
+2. Navigate to **Status -> Targets** and confirm `<TARGET_IP>:9100` state is **UP**.
 
-### 2. `node_exporter` Role
-- Downloads and extracts Node Exporter binary archive (v1.6.1).
-- Provisions `node_exporter.service` systemd unit file.
-- Starts and enables `node_exporter` service exposing metrics on port 9100.
+### Verified PromQL Queries
+* **Target Reachability:**
+  ```promql
+  up
+  ```
+* **Real-Time CPU Usage (%):**
+  ```promql
+  100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+  ```
+* **Memory Utilization (%):**
+  ```promql
+  (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+  ```
