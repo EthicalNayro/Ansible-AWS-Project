@@ -1,0 +1,10 @@
+---
+- name: Set up Prometheus server
+  hosts: prometheus
+  roles:
+    - prometheus
+
+- name: Set up Node Exporter
+  hosts: targets
+  roles:
+    - node_exporter
