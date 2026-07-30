@@ -40,7 +40,7 @@ Ansible-AWS-Project/
 * **Objective:** Replace static IP management with automated cloud resource discovery.
 * **Key Components:**
   * Configuration of `amazon.aws.aws_ec2` inventory plugin.
-  * Host grouping dynamically driven by AWS resource tags (`Env=prod`, `Role=webserver`).
+  * Host grouping dynamically driven by AWS resource tags (`Env=development`, `Role=web`).
   * Seamless SSH key authentication across auto-discovered cloud instances.
 
 ---
