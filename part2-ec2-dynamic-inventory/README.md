@@ -24,6 +24,7 @@ This repository provides an automated infrastructure management workflow designe
 ├── gather_ec2_info.yml   # Playbook to collect dynamic metadata & EC2 facts
 ├── install_apache.yml    # Playbook for installing, configuring, and starting Apache
 ├── ansible.cfg           # Ansible environment configuration settings
+├── images                # Contains all the images
 ├── .gitignore            # Security filtering (excludes *.pem keys and AWS credentials)
 └── README.md             # Project documentation
 ```
