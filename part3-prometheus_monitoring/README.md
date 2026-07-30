@@ -56,6 +56,8 @@ prometheus_monitoring/
      - Port `9090` (Prometheus Web UI) — Inbound allowed on Monitoring host.
      - Port `9100` (Node Exporter) — Inbound allowed from Prometheus Server.
 
+![AWS](images/AWS.png)
+
 2. **SSH Key Exchange:**
    Generate keypair on the Control Node and append the public key to the target host's `authorized_keys`:
    ```bash
@@ -84,6 +86,7 @@ Run the main orchestration playbook:
 ```bash
 ansible-playbook -i inventory site.yml
 ```
+![Playbook](images/working.png)
 
 ---
 
@@ -105,6 +108,9 @@ ansible-playbook -i inventory site.yml
 ## 📊 Verification & PromQL Metrics Validation
 
 1. Access Prometheus UI at `http://98.92.118.126:9090`.
+
+![PROM](images/prom.png)
+
 2. Navigate to **Status -> Targets** and confirm `44.192.75.14:9100` state is **UP**.
 
 ### Verified PromQL Queries
@@ -112,6 +118,8 @@ ansible-playbook -i inventory site.yml
   ```promql
   up
   ```
+![target](images/target.png)
+  
 * **Real-Time CPU Usage (%):**
   ```promql
   100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
@@ -120,3 +128,4 @@ ansible-playbook -i inventory site.yml
   ```promql
   (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
   ```
+![graphs](images/graphs.png)
