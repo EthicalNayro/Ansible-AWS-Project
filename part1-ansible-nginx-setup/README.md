@@ -52,4 +52,4 @@ Before running the playbook, end-to-end SSH key authentication and Python enviro
 ```bash
 ansible slaves -m ping
 ```
-![AWS EC2 Console Overview](images/.png)
+![AWS EC2 Console Overview](images/ping.png)
