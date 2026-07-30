@@ -1,0 +1,44 @@
+---
+- name: Install dependencies
+  become: true
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: true
+  loop:
+    - wget
+    - tar
+    - apache2-utils
+
+- name: Download Prometheus
+  become: true
+  ansible.builtin.get_url:
+    url: "https://github.com/prometheus/prometheus/releases/download/v2.44.0/prometheus-2.44.0.linux-amd64.tar.gz"
+    dest: /tmp/prometheus.tar.gz
+
+- name: Extract Prometheus
+  become: true
+  ansible.builtin.unarchive:
+    src: /tmp/prometheus.tar.gz
+    dest: /opt/
+    remote_src: true
+
+- name: Configure Prometheus scrape configuration
+  become: true
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /opt/prometheus-2.44.0.linux-amd64/prometheus.yml
+
+- name: Configure Prometheus service
+  become: true
+  ansible.builtin.template:
+    src: prometheus.service.j2
+    dest: /etc/systemd/system/prometheus.service
+
+- name: Start Prometheus service
+  become: true
+  ansible.builtin.systemd:
+    name: prometheus
+    state: started
+    enabled: true
+    daemon_reload: true
