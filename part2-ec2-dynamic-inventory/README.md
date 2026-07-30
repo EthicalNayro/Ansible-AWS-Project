@@ -67,7 +67,7 @@ Run the inspection playbook to collect instance details across the inventory:
 ```bash
 ansible-playbook -i ec2.aws_ec2.yml gather_ec2_info.yml
 ```
-![AWS Gather](/images/tags.png)
+![AWS Gather](images/tags.png)
 
 
 ### Step 3: Deploy Apache Web Server
