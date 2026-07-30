@@ -33,6 +33,7 @@ The project utilizes a 2-node AWS EC2 topology running Ubuntu 22.04 LTS:
 ```text
 prometheus_monitoring/
 ├── inventory                   # Inventory mapping (localhost + targets)
+├── images                      # Images used
 ├── site.yml                    # Main orchestration playbook
 ├── group_vars/                 # Directory for group-level variables
 └── roles/
@@ -74,7 +75,7 @@ Update the `inventory` file with your managed target server details:
 localhost ansible_connection=local
 
 [targets]
-<TARGET_INSTANCE_IP> ansible_user=ubuntu
+44.192.75.14 ansible_user=ubuntu
 ```
 
 ### 2. Execute Deployment
