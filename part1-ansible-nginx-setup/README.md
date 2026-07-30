@@ -37,8 +37,7 @@ The deployment environment consists of three `t3.micro` EC2 instances running Ub
 
 ```text
 part1-ansible-nginx-setup/
-├── inventory/
-│   └── hosts               # Managed nodes inventory definition
+├── inventory
 ├── templates/
 │   └── index.html.j2       # Jinja2 dynamic HTML web template
 ├── images/                 # Project documentation images
@@ -52,6 +51,22 @@ part1-ansible-nginx-setup/
 Before running the playbook, end-to-end SSH key authentication and Python environment readiness were verified using Ansible's ad-hoc ping module against all target nodes:
 
 ```
-ansible slaves -m ping
+ansible webservers -m ping
 ```
 ![AWS EC2 Console Overview](images/Ping.png)
+
+### 2. Automated Playbook Execution
+The main configuration playbook was executed from the Main control node to automate package installation, system service management, and dynamic template rendering across `slave1` and `slave2`:
+
+```bash
+ansible-playbook site.yml
+```
+![AWS Playbook](images/Site.yml.png)
+
+### 3. Public HTTP Service Validation
+Verified that Nginx is actively running and accepting HTTP protocol requests on Port 80 across both EC2 public IP addresses:
+```bash
+curl -I http://44.211.157.214
+curl -I http://100.58.192.3
+```
+![AWS Curl](images/Curl.png)
