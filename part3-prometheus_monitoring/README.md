@@ -60,7 +60,7 @@ prometheus_monitoring/
    Generate keypair on the Control Node and append the public key to the target host's `authorized_keys`:
    ```bash
    ssh-keygen -t rsa -b 4096 -N "" -f ~/.ssh/id_rsa
-   ssh-copy-id ubuntu@<TARGET_IP>
+   ssh-copy-id ubuntu@44.192.75.14
    ```
 
 ---
@@ -104,8 +104,8 @@ ansible-playbook -i inventory site.yml
 
 ## 📊 Verification & PromQL Metrics Validation
 
-1. Access Prometheus UI at `http://<PROMETHEUS_PUBLIC_IP>:9090`.
-2. Navigate to **Status -> Targets** and confirm `<TARGET_IP>:9100` state is **UP**.
+1. Access Prometheus UI at `http://98.92.118.126:9090`.
+2. Navigate to **Status -> Targets** and confirm `44.192.75.14:9100` state is **UP**.
 
 ### Verified PromQL Queries
 * **Target Reachability:**
