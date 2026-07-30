@@ -1,0 +1,12 @@
+---
+- name: Gather information about EC2 instances
+  hosts: tag_Ansible___Slave_1___oryan, tag_Ansible___Slave_2___oryan
+  gather_facts: yes
+  tasks:
+    - name: Print instance public IPs
+      ansible.builtin.debug:
+        msg: "Instance IP: {{ ansible_host }}"
+
+    - name: Print EC2 tags
+      ansible.builtin.debug:
+        var: tags
