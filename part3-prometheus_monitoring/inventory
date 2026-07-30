@@ -1,0 +1,5 @@
+[prometheus]
+localhost ansible_connection=local
+
+[targets]
+44.192.75.14 ansible_user=ubuntu
