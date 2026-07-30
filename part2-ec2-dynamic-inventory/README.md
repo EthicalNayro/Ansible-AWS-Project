@@ -75,14 +75,14 @@ Execute the deployment playbook across all discovered instances:
 ```bash
 ansible-playbook -i ec2.aws_ec2.yml install_apache.yml
 ```
-![AWS Apache](images/curl
+![AWS Apache](images/apache.png)
 
 ### Step 4: Post-Deployment Cluster Verification
 Run an ad-hoc command from the Control Node to verify HTTP response status from target nodes:
 ```bash
 ansible all -i ec2.aws_ec2.yml -m shell -a "curl -I http://localhost" -b
 ```
-
+![AWS curl](images/curlbasedroles.png)
 ---
 
 ## 🔍 Engineering Deep Dive: Troubleshooting & Failure Recovery
