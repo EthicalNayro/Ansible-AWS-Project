@@ -44,12 +44,14 @@ part1-ansible-nginx-setup/
 ├── images/                 # Project documentation images
 ├── site.yml                # Main Ansible provisioning playbook
 └── README.md               # Project documentation
+
+```
 ## 🧪 Verification & Execution Flow
 
 ### 1. Connectivity Verification (`ping` module)
 Before running the playbook, end-to-end SSH key authentication and Python environment readiness were verified using Ansible's ad-hoc ping module against all target nodes:
+
 ```
-```bash
 ansible slaves -m ping
 ```
 ![AWS EC2 Console Overview](images/Ping.png)
