@@ -70,3 +70,11 @@ curl -I http://44.211.157.214
 curl -I http://100.58.192.3
 ```
 ![AWS Curl](images/Curl.png)
+
+### 4. Dynamic Jinja2 Rendering & Host Resolution Validation
+Confirmed that host resolution via `/etc/hosts` functions properly on the control node, and that Ansible dynamically interpolated host-specific metadata (Hostname & Internal IP) for each web server:
+```bash
+curl http://slave1
+curl http://slave2
+```
+![AWS template](images/template.png)
